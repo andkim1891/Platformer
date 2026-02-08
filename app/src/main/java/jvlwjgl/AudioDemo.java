@@ -47,10 +47,10 @@ public class AudioDemo {
         AudioManager.INSTANCE.createSourcePool(16);  // pool for overlapping sounds
 
         // Load sounds from resources/anderson/sfx/
-        AudioManager.INSTANCE.load("A", "anderson/sfx/sfx_a.wav");
-        AudioManager.INSTANCE.load("S", "anderson/sfx/sfx_s.wav");
-        AudioManager.INSTANCE.load("D", "anderson/sfx/sfx_d.wav");
-        AudioManager.INSTANCE.load("F", "anderson/sfx/sfx_f.wav");
+        AudioManager.INSTANCE.load("A", "anderson/sfx/sfx01_pickup.wav");
+        AudioManager.INSTANCE.load("S", "anderson/sfx/sfx02_explosion.wav");
+        AudioManager.INSTANCE.load("D", "anderson/sfx/sfx03_laser_shot.wav");
+        AudioManager.INSTANCE.load("F", "anderson/sfx/sfx04_magic_spell.wav");
 
         // Input handler binds keys to actions (command pattern-ish)
         InputHandler input = new InputHandler(window);
