@@ -82,8 +82,10 @@ public class Player {
 
     //Wind Burst
     public static boolean windBurst;
+    public static boolean WindBurstSlow;
     public static final int windBurstSize = 100;
     public int currentGameTimeForWindBurst;
+
 
 
 
@@ -203,6 +205,7 @@ public class Player {
     }
     public void windBurst(){
         windBurst = true;
+        WindBurstSlow = true;
         currentGameTimeForWindBurst = (int) PlatformerModel.gameTime;
     }
 
@@ -226,8 +229,11 @@ public class Player {
             if (currentGameTimeForJump + 25 <= (int) PlatformerModel.gameTime){
                 jumpReleased();
             }
-            if (currentGameTimeForWindBurst + 100 <= (int) PlatformerModel.gameTime){
+            if (currentGameTimeForWindBurst + 50 <= (int) PlatformerModel.gameTime){
                 windBurst = false;
+            }
+            if (currentGameTimeForWindBurst + 80 <= (int) PlatformerModel.gameTime){
+                WindBurstSlow = false;
             }
             if (onGround){
                 startJumpChargeCounter = false;
