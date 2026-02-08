@@ -4,7 +4,13 @@
 [versions]
 guava = "32.1.2-jre"
 junit = "4.13.2"
+mp3spi = "1.9.5.4"
+jlayer = "1.0.1"
+tritonus = "0.3.7.4"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit = { module = "junit:junit", version.ref = "junit" }
+mp3spi = { module = "com.googlecode.soundlibs:mp3spi", version.ref = "mp3spi" }
+jlayer = { module = "javazoom:jlayer", version.ref = "jlayer" }
+tritonus = { module = "com.googlecode.soundlibs:tritonus-share", version.ref = "tritonus" }

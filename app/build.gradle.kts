@@ -32,6 +32,11 @@ dependencies {
     // General utility library
     implementation(libs.guava)
 
+    // Audio support (MP3)
+    implementation(libs.mp3spi)
+    implementation(libs.jlayer)
+    implementation(libs.tritonus)
+
     // [Game Library] LWJGL (Lightweight Java Game Library)
     implementation("org.lwjgl:lwjgl:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")

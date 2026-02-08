@@ -59,6 +59,10 @@ public class UIWindow {
         glLoadIdentity();
     }
 
+    public long getHandle() {
+        return windowHandle;
+    }
+
     public void setTitle(String title) {
         this.title = title;
         glfwSetWindowTitle(windowHandle, title);
