@@ -37,12 +37,14 @@ dependencies {
     implementation("org.lwjgl:lwjgl-stb:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
     implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
+    implementation("org.lwjgl:lwjgl-openal:$lwjglVersion")
 
     // [Natives] Runtime Native Binaries (OS-Specific)
     runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-glfw:$lwjglVersion:$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-opengl:$lwjglVersion:$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-openal:$lwjglVersion:$lwjglNatives")
 }
 
 java {
@@ -54,7 +56,7 @@ java {
 
 application {
     // [Entry Point] The main class that starts the game.
-    mainClass.set("jvlwjgl.App")
+    mainClass.set("jvlwjgl.AudioDemo")
 }
 
 // --- TASK CONFIGURATIONS ---
