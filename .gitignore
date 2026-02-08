@@ -1,4 +1,4 @@
-# --- Generated from ./.gitignores on Sun Feb  8 15:51:48 2026 ---
+# --- Generated from ./.gitignores on Sun Feb  8 16:45:57 2026 ---
 
 #############################################
 # A.gitignore
@@ -24,7 +24,7 @@ cursor*/
 *.mkv
 
 # Audios (large media files)
-*.mp3
+# *.mp3
 # *.wav
 # *.flac
 
@@ -1155,7 +1155,7 @@ resources/.arch-internal-preview.css
 *.ps
 *.mid
 *.midi
-*.mp3
+# *.mp3
 *.aif
 # *.wav
 # Some versions of Finale have a bug and randomly save extra copies of

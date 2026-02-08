@@ -1,35 +1,25 @@
 package jvlwjgl;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.glfw.*;
-import org.lwjgl.openal.*;
-import org.lwjgl.system.MemoryUtil;
+import dev.lwjgl.UIWindow;
+import dev.lwjgl.ui.Colors;
+import dev.lwjgl.ui.components.UILabel;
 
-import javax.sound.sampled.*;
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.openal.AL10.*;
-import static org.lwjgl.openal.ALC10.*;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
- * AudioDemo with clearer design:
- *  - AudioManager (Singleton) manages OpenAL lifecycle, loading, playing, volume, cleanup.
- *  - InputHandler maps keys to Runnable commands (easy to extend).
- *
- * Resource WAVs are expected under: src/main/resources/anderson/sfx/
- * Example names used below: sfx_a.wav, sfx_s.wav, sfx_d.wav, sfx_f.wav
- *
- * NOTE: Keep the LWJGL/OpenAL/GLFW dependencies in your Gradle setup (same as previous snippet).
+ * AudioDemo with UI and advanced Audio control.
+ * Features:
+ *  - Singleton AudioManager (SFX + BGM)
+ *  - UIWindow with Labels (Last Key, Volume)
+ *  - Volume Control (Arrows)
+ *  - Continuous playback with gap (Debounce)
  */
 public class AudioDemo {
 
-    // ---------- Main / lifecycle ----------
     public static void main(String[] args) {
         AudioDemo demo = new AudioDemo();
         try {
@@ -39,244 +29,138 @@ public class AudioDemo {
         }
     }
 
-    private long window;
+    private UIWindow window;
+    private UILabel statusLabel;
+    private UILabel volumeLabel;
+    private UILabel helpLabel;
+    
+    private String lastKeyName = "None";
 
     public void run() throws Exception {
-        initGLFWWindow();
-        AudioManager.INSTANCE.init();               // Singleton init
-        AudioManager.INSTANCE.createSourcePool(16);  // pool for overlapping sounds
+        // 1. Init UI Window (GLFW + OpenGL)
+        window = new UIWindow("AudioDemo - GUI & Advanced Audio", 600, 400, 16);
+        
+        // 2. Init Audio (OpenAL)
+        AudioManager.getInstance().init();
+        AudioManager.getInstance().setupSFX("anderson/sfx");
+        AudioManager.getInstance().setupBGM("anderson/bgm");
 
-        // Load sounds from resources/anderson/sfx/
-        AudioManager.INSTANCE.load("A", "anderson/sfx/sfx01_pickup.wav");
-        AudioManager.INSTANCE.load("S", "anderson/sfx/sfx02_explosion.wav");
-        AudioManager.INSTANCE.load("D", "anderson/sfx/sfx03_laser_shot.wav");
-        AudioManager.INSTANCE.load("F", "anderson/sfx/sfx04_magic_spell.wav");
+        // 3. Setup GUI Components
+        statusLabel = new UILabel("Last Key: None", 20, 300, 3.0);
+        statusLabel.setColor(Colors.YELLOW);
+        
+        volumeLabel = new UILabel("SFX: 100% | BGM: 100%", 20, 250, 2.0);
+        volumeLabel.setColor(Colors.CYAN);
+        
+        helpLabel = new UILabel("A/S/D/F: SFX | Arrows: Vol | M: BGM | N: Stop | R: Reset", 20, 50, 1.5);
+        helpLabel.setColor(Colors.WHITE);
 
-        // Input handler binds keys to actions (command pattern-ish)
-        InputHandler input = new InputHandler(window);
-        input.bindKey(GLFW_KEY_A, () -> AudioManager.INSTANCE.play("A"));
-        input.bindKey(GLFW_KEY_S, () -> AudioManager.INSTANCE.play("S"));
-        input.bindKey(GLFW_KEY_D, () -> AudioManager.INSTANCE.play("D"));
-        input.bindKey(GLFW_KEY_F, () -> AudioManager.INSTANCE.play("F"));
+        // 4. Input Handler
+        InputHandler input = new InputHandler(window.getHandle());
+        
+        // --- SFX Bindings ---
+        input.bindKey(GLFW_KEY_A, () -> {
+            AudioManager.getInstance().playSFX("sfx01_pickup.wav");
+            updateStatus("A (Pickup)");
+        });
+        input.bindKey(GLFW_KEY_S, () -> {
+            AudioManager.getInstance().playSFX("sfx02_explosion.wav");
+            updateStatus("S (Explosion)");
+        });
+        input.bindKey(GLFW_KEY_D, () -> {
+            AudioManager.getInstance().playSFX("sfx03_laser_shot.wav");
+            updateStatus("D (Laser)");
+        });
+        input.bindKey(GLFW_KEY_F, () -> {
+            AudioManager.getInstance().playSFX("sfx04_magic_spell.wav");
+            updateStatus("F (Magic)");
+        });
 
-        System.out.println("Press A S D F to play sounds. Close the window to exit.");
+        // --- BGM Controls ---
+        input.bindKey(GLFW_KEY_M, () -> {
+            // Note: Using WAV for guaranteed playback. MP3 is supported via added SPI.
+            // M4A support requires additional native libraries not present here.
+            AudioManager.getInstance().playBGM("bgm03_sexophone.mp3"); 
+            updateStatus("M (Play BGM)");
+        });
+        input.bindKey(GLFW_KEY_N, () -> {
+            AudioManager.getInstance().stopBGM();
+            updateStatus("N (Stop BGM)");
+        });
 
-        // Main loop
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            input.pollAndRun();
-            // tiny sleep to avoid a busy-loop
+        // --- Volume Controls (Arrows) ---
+        input.bindKey(GLFW_KEY_LEFT, () -> {
+            float v = AudioManager.getInstance().getSFXVolume() - 0.05f;
+            AudioManager.getInstance().setSFXVolume(v);
+            updateStatus("Left (SFX -)");
+        });
+        input.bindKey(GLFW_KEY_RIGHT, () -> {
+            float v = AudioManager.getInstance().getSFXVolume() + 0.05f;
+            AudioManager.getInstance().setSFXVolume(v);
+            updateStatus("Right (SFX +)");
+        });
+        input.bindKey(GLFW_KEY_UP, () -> {
+            float v = AudioManager.getInstance().getBGMVolume() + 0.05f;
+            AudioManager.getInstance().setBGMVolume(v);
+            updateStatus("Up (BGM +)");
+        });
+        input.bindKey(GLFW_KEY_DOWN, () -> {
+            float v = AudioManager.getInstance().getBGMVolume() - 0.05f;
+            AudioManager.getInstance().setBGMVolume(v);
+            updateStatus("Down (BGM -)");
+        });
+        
+        // --- Reset ---
+        input.bindKey(GLFW_KEY_R, () -> {
+            AudioManager.getInstance().resetSFX("anderson/sfx");
+            AudioManager.getInstance().resetBGM("anderson/bgm");
+            updateStatus("R (Reset)");
+        });
+
+        System.out.println("AudioDemo running...");
+
+        // 5. Main Loop
+        while (!window.shouldClose()) {
+            window.pollEvents();
+            input.pollAndRun(); // Continuous polling for "keep pressing" feel
+
+            // Update Labels
+            statusLabel.setText("Last Key: " + lastKeyName);
+            int sfxPct = (int)(AudioManager.getInstance().getSFXVolume() * 100);
+            int bgmPct = (int)(AudioManager.getInstance().getBGMVolume() * 100);
+            volumeLabel.setText(String.format("SFX: %d%% | BGM: %d%% [Loop]", sfxPct, bgmPct));
+
+            // Render
+            glClearColor(0.1f, 0.1f, 0.2f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            statusLabel.render();
+            volumeLabel.render();
+            helpLabel.render();
+
+            window.swapBuffers();
+            
+            // tiny sleep to yield CPU
             try { Thread.sleep(8); } catch (InterruptedException ignored) {}
         }
 
-        // cleanup
-        AudioManager.INSTANCE.cleanup();
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        GLFWErrorCallback cb = glfwSetErrorCallback(null);
-        if (cb != null) cb.free();
+        // Cleanup
+        // Explicit cleanup is required to prevent native crashes (0xC0000409) on Windows/LWJGL
+        AudioManager.getInstance().cleanup();
+        window.destroy();
+    }
+    
+    private void updateStatus(String msg) {
+        this.lastKeyName = msg;
     }
 
-    // ---------- GLFW helper ----------
-    private void initGLFWWindow() {
-        GLFWErrorCallback.createPrint(System.err).set();
-        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
-
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-        window = glfwCreateWindow(360, 120, "AudioDemo (A S D F)", NULL, NULL);
-        if (window == NULL) throw new RuntimeException("Failed to create GLFW window");
-
-        // center and show
-        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        if (vidmode != null) {
-            glfwSetWindowPos(window,
-                    (vidmode.width() - 360) / 2,
-                    (vidmode.height() - 120) / 2);
-        }
-        glfwShowWindow(window);
-        // an OpenGL context helps ensure keyboard input works cross-platform
-        glfwMakeContextCurrent(window);
-    }
-
-    // ---------- AudioManager: Singleton, Facade for audio operations ----------
-    public enum AudioManager {
-        INSTANCE;
-
-        private long device = MemoryUtil.NULL;
-        private long context = MemoryUtil.NULL;
-
-        // name -> OpenAL buffer id
-        private final Map<String, Integer> buffers = new HashMap<>();
-
-        // source pool for overlapping playback
-        private int[] sources = new int[8];
-        private int nextSourceIdx = 0;
-
-        private float masterGain = 1.0f; // simple volume control (0..1)
-
-        // initialize OpenAL device/context
-        public void init() {
-            device = alcOpenDevice((ByteBuffer) null);
-            if (device == MemoryUtil.NULL) throw new IllegalStateException("Failed to open default OpenAL device");
-
-            context = alcCreateContext(device, (IntBuffer) null);
-            if (context == MemoryUtil.NULL) throw new IllegalStateException("Failed to create OpenAL context");
-
-            alcMakeContextCurrent(context);
-            AL.createCapabilities(ALC.createCapabilities(device));
-            System.out.println("AudioManager: OpenAL initialized.");
-        }
-
-        // create a pool of sources (call after init)
-        public void createSourcePool(int size) {
-            if (size <= 0) size = 8;
-            sources = new int[size];
-            for (int i = 0; i < size; i++) {
-                sources[i] = alGenSources();
-                alSourcef(sources[i], AL_GAIN, masterGain);
-                alSourcef(sources[i], AL_PITCH, 1.0f);
-                alSourcei(sources[i], AL_LOOPING, AL_FALSE);
-            }
-            nextSourceIdx = 0;
-            System.out.println("AudioManager: source pool created (" + size + ")");
-        }
-
-        // load a WAV from classpath (robust converter using Java Sound)
-        public void load(String name, String classpathResource) {
-            if (buffers.containsKey(name)) {
-                System.out.println("AudioManager: sound '" + name + "' already loaded.");
-                return;
-            }
-            int bufferId = loadWavToALBuffer(classpathResource);
-            if (bufferId != 0) {
-                buffers.put(name, bufferId);
-                System.out.println("AudioManager: loaded '" + name + "' -> buffer " + bufferId);
-            } else {
-                System.err.println("AudioManager: failed to load '" + name + "' from " + classpathResource);
-            }
-        }
-
-        // play by name (no-op if not loaded)
-        public void play(String name) {
-            Integer buf = buffers.get(name);
-            if (buf == null) {
-                System.err.println("AudioManager: sound not found: " + name);
-                return;
-            }
-            if (sources.length == 0) {
-                System.err.println("AudioManager: no sources available");
-                return;
-            }
-            int src = sources[nextSourceIdx];
-            // stop & detach previous buffer before reusing source
-            alSourceStop(src);
-            alSourcei(src, AL_BUFFER, buf);
-            alSourcef(src, AL_GAIN, masterGain);
-            alSourcePlay(src);
-            nextSourceIdx = (nextSourceIdx + 1) % sources.length;
-        }
-
-        public void setMasterGain(float gain) {
-            masterGain = Math.max(0f, Math.min(1f, gain));
-            for (int s : sources) {
-                alSourcef(s, AL_GAIN, masterGain);
-            }
-        }
-
-        // cleanup AL buffers & sources & context & device
-        public void cleanup() {
-            // delete sources
-            for (int s : sources) {
-                if (s != 0) alDeleteSources(s);
-            }
-            // delete buffers
-            for (Integer b : buffers.values()) {
-                if (b != null && b != 0) alDeleteBuffers(b);
-            }
-            buffers.clear();
-
-            if (context != MemoryUtil.NULL) {
-                alcDestroyContext(context);
-                context = MemoryUtil.NULL;
-            }
-            if (device != MemoryUtil.NULL) {
-                alcCloseDevice(device);
-                device = MemoryUtil.NULL;
-            }
-            System.out.println("AudioManager: cleaned up.");
-        }
-
-        // ---------- internal WAV loader ----------
-        private int loadWavToALBuffer(String resourcePath) {
-            try (InputStream raw = openResource(resourcePath)) {
-                if (raw == null) {
-                    System.err.println("AudioManager: resource not found: " + resourcePath);
-                    return 0;
-                }
-                try (AudioInputStream ais = AudioSystem.getAudioInputStream(new BufferedInputStream(raw))) {
-                    AudioFormat baseFormat = ais.getFormat();
-                    AudioFormat pcmFormat = new AudioFormat(
-                            AudioFormat.Encoding.PCM_SIGNED,
-                            baseFormat.getSampleRate(),
-                            16,
-                            baseFormat.getChannels(),
-                            baseFormat.getChannels() * 2,
-                            baseFormat.getSampleRate(),
-                            false // little-endian
-                    );
-                    try (AudioInputStream din = AudioSystem.getAudioInputStream(pcmFormat, ais)) {
-                        // read all bytes
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        byte[] buf = new byte[4096];
-                        int read;
-                        while ((read = din.read(buf, 0, buf.length)) != -1) {
-                            baos.write(buf, 0, read);
-                        }
-                        byte[] audioBytes = baos.toByteArray();
-
-                        ByteBuffer data = BufferUtils.createByteBuffer(audioBytes.length);
-                        data.put(audioBytes);
-                        data.flip();
-
-                        int alBuffer = alGenBuffers();
-                        int channels = pcmFormat.getChannels();
-                        int format = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
-                        int sampleRate = (int) pcmFormat.getSampleRate();
-
-                        alBufferData(alBuffer, format, data, sampleRate);
-                        return alBuffer;
-                    }
-                }
-            } catch (UnsupportedAudioFileException e) {
-                System.err.println("AudioManager: Unsupported audio file: " + resourcePath + " -> " + e.getMessage());
-            } catch (IOException e) {
-                System.err.println("AudioManager: I/O error loading: " + resourcePath + " -> " + e.getMessage());
-            } catch (Exception e) {
-                System.err.println("AudioManager: Unexpected error: " + e.getMessage());
-                e.printStackTrace();
-            }
-            return 0;
-        }
-
-        // helper to open classpath resource (leading slash optional)
-        private InputStream openResource(String resourcePath) {
-            String p = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
-            InputStream s = AudioDemo.class.getResourceAsStream(p);
-            if (s == null) s = AudioDemo.class.getClassLoader().getResourceAsStream(resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath);
-            return s;
-        }
-    }
-
-    // ---------- InputHandler: binds GLFW keys to Runnable actions ----------
+    // ---------- InputHandler ----------
     public static class InputHandler {
         private final Map<Integer, Runnable> bindings = new HashMap<>();
         private final long glfwWindow;
-        // small debounce to reduce retriggers while key is held
         private final Map<Integer, Long> lastTriggered = new HashMap<>();
-        private final long debounceMs = 120;
+        // Lower debounce for volume/SFX to feel responsive but not crazy
+        private final long debounceMs = 80; 
 
         public InputHandler(long window) {
             this.glfwWindow = window;
@@ -300,6 +184,11 @@ public class AudioDemo {
                         }
                         lastTriggered.put(key, now);
                     }
+                } else {
+                    // Reset trigger if key released? 
+                    // No, for auto-repeat we just rely on time.
+                    // If we wanted "press once", we'd track release.
+                    // This "continuous" style fits the request.
                 }
             }
         }
