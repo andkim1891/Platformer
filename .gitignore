@@ -1,4 +1,4 @@
-# --- Generated from ./.gitignores on Thu Feb  5 14:16:58 2026 ---
+# --- Generated from ./.gitignores on Sun Feb  8 15:51:48 2026 ---
 
 #############################################
 # A.gitignore
@@ -1157,7 +1157,7 @@ resources/.arch-internal-preview.css
 *.midi
 *.mp3
 *.aif
-*.wav
+# *.wav
 # Some versions of Finale have a bug and randomly save extra copies of
 # the music source as "<Filename> copy.mus"
 *copy.mus
