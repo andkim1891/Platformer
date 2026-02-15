@@ -1,6 +1,7 @@
 package platformer;
 
 import dev.lwjgl.UIWindow;
+import dev.lwjgl.audio.AudioManager;
 
 /**
  * Entry point for the refactored LWJGL Platformer game.
@@ -25,10 +26,14 @@ public class PlatformerGame {
             if (state != null) {
                 state.cleanup();
             }
+            AudioManager.getInstance().cleanup();
         }
     }
 
     private void init() {
+        AudioManager.getInstance().init();
+        AudioManager.getInstance().setupSFX("anderson/sfx");
+        AudioManager.getInstance().setupBGM("anderson/bgm");
         this.window = new UIWindow("Platformer", 800, 600, 20);
         this.state = new PlatformerGameState(window);
 
@@ -38,6 +43,10 @@ public class PlatformerGame {
             window.getCursorPos(cursor);
             state.onMouse(button, action, cursor[0], cursor[1]);
         });
+
+
+        AudioManager.getInstance().playBGM("backgroundmusic1.mp3");
+        AudioManager.getInstance().setBGMVolume(0.35f);
     }
 
     private void loop() {

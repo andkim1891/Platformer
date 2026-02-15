@@ -61,7 +61,7 @@ java {
 
 application {
     // [Entry Point] The main class that starts the game.
-    mainClass.set("jvlwjgl.AudioDemo")
+    mainClass.set("jvlwjgl.App")
 }
 
 // --- TASK CONFIGURATIONS ---

@@ -1,5 +1,7 @@
 package platformer;
 
+import dev.lwjgl.audio.AudioManager;
+
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -60,7 +62,7 @@ public class Player {
 
     // Stab system //1
     public boolean isStabbing;
-    private final float stabCooldownCap = 0.0f;
+    private final float stabCooldownCap = 5.0f;
     public float stabCurrentCooldown;
     public final float stabDurationCap = 0.1f;
     private float stabCurrentDuration;
@@ -135,6 +137,7 @@ public class Player {
             stabCurrentCooldown = stabCooldownCap;
             stabCurrentDuration = stabDurationCap;
             isStabbing = true;
+            AudioManager.getInstance().playSFX("sfx10_wood_hit.wav");
         }else if (!PlatformerModel.freezeTime) {
             showStabCooldownMessage = true;
         }
@@ -314,6 +317,7 @@ public class Player {
                 fall = true;
                 if (shouldFall <= 0.0f) {
                     shouldFall = 0.0f;
+                    if (!onGround) AudioManager.getInstance().playSFX("sfx07_water_drop.wav");
                     fall = false;
                 }
             }

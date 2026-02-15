@@ -60,7 +60,7 @@ public class MobA {
 
         } else if (Player.WindBurstSlow && distance < Player.windBurstSize + 20) {
             // Outer zone: slow only (NO knockback)
-            slowMultiplier = 0.25f; // tweak: 0.2–0.4 feels good
+            slowMultiplier = 0.25f; // tweak: 0.2 0.4 feels good
         }
 
         // -------------------------------------------------

@@ -1,5 +1,6 @@
 package platformer;
 
+import dev.lwjgl.audio.AudioManager;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.opengl.GL11.glClearColor;
 
@@ -117,6 +118,9 @@ public class PlatformerGameState {
             if (key == keyMap.get("UP")) {
                 player.jumpAir();
             }
+            if (key == keyMap.get("CHARATER SKILL") && model.getPlayer().whichcharacter == 1) {
+                model.getShopSystem().setCanGamble(true);
+            }
         } else if(action == GLFW.GLFW_REPEAT){
             keyStates[key] = true;
         }else if (action == GLFW.GLFW_RELEASE) {
@@ -127,9 +131,6 @@ public class PlatformerGameState {
                 if (Player.canReleaseJump){
                     player.jumpReleased();
                 }
-            }
-            if (key == keyMap.get("CHARATER SKILL") && model.getPlayer().whichcharacter == 1) {
-                model.getShopSystem().setCanGamble(true);
             }
         }
         
