@@ -1,6 +1,7 @@
 package jvlwjgl;
 
 import dev.lwjgl.UIWindow;
+import dev.lwjgl.audio.AudioManager;
 import dev.lwjgl.ui.Colors;
 import dev.lwjgl.ui.components.UILabel;
 
@@ -80,10 +81,10 @@ public class AudioDemo {
         input.bindKey(GLFW_KEY_M, () -> {
             // Note: Using WAV for guaranteed playback. MP3 is supported via added SPI.
             // M4A support requires additional native libraries not present here.
-            AudioManager.getInstance().playBGM("bgm03_sexophone.mp3"); 
+            AudioManager.getInstance().playBGM("backgroundmusic1.mp3");
             updateStatus("M (Play BGM)");
         });
-        input.bindKey(GLFW_KEY_N, () -> {
+        input.bindKey(GLFW_KEY_N, () -> { //djartmusic-return-to-the-8-bit-past = 1 //niknet_art-retro-8bit-happy-videogame-music-246631 = 2 // cridit NiKneT_Art && DJARTMUSIC from pixabaqy
             AudioManager.getInstance().stopBGM();
             updateStatus("N (Stop BGM)");
         });

@@ -1,4 +1,4 @@
-package jvlwjgl;
+package dev.lwjgl.audio;
 
 import com.google.common.reflect.ClassPath;
 import org.lwjgl.BufferUtils;
@@ -264,6 +264,10 @@ public class AudioManager {
         }
     }
 
+    /**
+     * Set the playing BGM's volume sound, scaled [0.0,1.0]
+     * @param volume scale factor in [0.0,1.0]
+     */
     public void setBGMVolume(float volume) {
         this.bgmVolume = Math.max(0.0f, Math.min(1.0f, volume));
         if (bgmSource != 0) alSourcef(bgmSource, AL_GAIN, bgmVolume);
