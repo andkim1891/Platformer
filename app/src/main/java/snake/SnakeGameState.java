@@ -4,18 +4,16 @@ import dev.lwjgl.ui.components.*;
 import dev.lwjgl.ui.components.controls.UIButton;
 import dev.lwjgl.UIWindow;
 
-import java.awt.*;
-
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
  * A single class that encapsulates all finite state machine logic
- * for the menu, playing, and game over phases.
+ * for the playing, paused, and game over phases.
  */
 public class SnakeGameState {
 
-    private enum Phase {MENU, PLAYING, GAME_OVER}
+    private enum Phase {PLAYING, PAUSED, GAME_OVER}
 
     private final UIWindow window;
     private final int gridW;
@@ -25,7 +23,7 @@ public class SnakeGameState {
     private final double[] cursor = new double[2];
     private final double secPerUpdate = 1.0 / 8.0;
 
-    private Phase phase = Phase.MENU;
+    private Phase phase = Phase.PLAYING;
     private SnakeModel snake;
     private UILabel scoreLabel;
     private double accumulator = 0.0;
@@ -36,7 +34,7 @@ public class SnakeGameState {
         this.gridH = window.getGridH();
         this.cellSize = window.getCellSize();
         this.rootView = new UIContainer(0, 0, window.getWinW(), window.getWinH());
-        transitionTo(Phase.MENU);
+        transitionTo(Phase.PLAYING);
     }
 
     void update(double delta) {
@@ -60,14 +58,14 @@ public class SnakeGameState {
     }
 
     void render() {
-        if (phase == Phase.PLAYING) {
+        if (phase == Phase.PLAYING || phase == Phase.PAUSED) {
             glClearColor(0.06f, 0.06f, 0.06f, 1.0f);
         } else {
             glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
         }
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (phase == Phase.PLAYING) {
+        if (phase == Phase.PLAYING || phase == Phase.PAUSED) {
             drawGridBackground();
             drawSnake();
             drawFood();
@@ -79,7 +77,9 @@ public class SnakeGameState {
     void onKey(int key, int action) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
             if (phase == Phase.PLAYING) {
-                transitionTo(Phase.MENU);
+                transitionTo(Phase.PAUSED);
+            } else if (phase == Phase.PAUSED) {
+                transitionTo(Phase.PLAYING);
             } else {
                 window.requestClose();
             }
@@ -118,67 +118,66 @@ public class SnakeGameState {
     private void transitionTo(Phase newPhase) {
         this.phase = newPhase;
         switch (newPhase) {
-            case MENU -> buildMenuUI();
             case PLAYING -> buildPlayingUI();
+            case PAUSED -> buildPauseUI();
             case GAME_OVER -> buildGameOverUI();
         }
-    }
-
-    private void buildMenuUI() {
-        window.setTitle("Snake Game - Click to Start");
-        rootView.clear();
-
-        double winW = window.getWinW();
-        double winH = window.getWinH();
-        int n = 5;
-
-        UIRectangle rectangle = new UIRectangle(winW / 2, winH * 3/4, 200, 100);
-        rootView.add(rectangle);
-        rectangle.setGlowing(true);   //  correct
-
-
-        UIPolygon polygon = new UIPolygon("sanke", n, winW / 2 - 100 , winH * 4/5, 100, 0, 1f);
-//        polygon.setGrowing(true);
-        polygon.setRotating(true);
-        polygon.setGlowing(true);
-        rootView.add(polygon);
-
-
-        UIStar star = new UIStar(n, winW / 2 + 100, winH * 1/5, 100, 0);
-//        star.setGrowing(true);
-        star.setGlowing(true);
-//        star.setRotating(true);
-        rootView.add(star);
-
-        UILabel motif = new UILabel("abcdefghijklmnopqrstuvwxyz", 0, winH * 0.25, 4);
-        motif.centerHorizontal(0, winW);
-        rootView.add(motif);
-
-        UILabel title = new UILabel("Snake Game (Playable!)", 0, winH * 0.10, 2);
-        title.centerHorizontal(0, winW);
-        rootView.add(title);
-
-        UIButton startButton = new UIButton(
-                "START SNAKE GAME",
-                winW / 2.0 - 100,
-                winH / 2.0 - 24,
-                200,
-                48,
-                () -> transitionTo(Phase.PLAYING)
-        );
-        rootView.add(startButton);
     }
 
     private void buildPlayingUI() {
         window.setTitle("Snake Game - Use Arrow Keys!");
         rootView.clear();
-        this.snake = new SnakeModel(gridW, gridH);
-        this.accumulator = 0.0;
+        // Only reset game if coming from GAME_OVER, or if it's null (initial)
+        if (snake == null || snake.isGameOver()) {
+             this.snake = new SnakeModel(gridW, gridH);
+             this.accumulator = 0.0;
+        }
 
-        this.scoreLabel = new UILabel("SCORE: 0", 10, 10, 2);
+        this.scoreLabel = new UILabel("SCORE: " + (snake != null ? snake.getScore() : 0), 10, 10, 2);
         rootView.add(scoreLabel);
+    }
+    
+    private void buildPauseUI() {
+        window.setTitle("Snake Game - PAUSED");
+        
+        // Let's add the score label back
+        if (snake != null) {
+            this.scoreLabel = new UILabel("SCORE: " + snake.getScore(), 10, 10, 2);
+            rootView.add(scoreLabel);
+        }
 
+        double winW = window.getWinW();
+        double winH = window.getWinH();
 
+        // Dim background
+        UIRectangle dim = new UIRectangle(winW/2, winH/2, winW, winH);
+        dim.setColor(0, 0, 0);
+        dim.setAlpha(0.5f);
+        rootView.add(dim);
+
+        UILabel pauseLabel = new UILabel("PAUSED", 0, winH * 0.3, 4);
+        pauseLabel.centerHorizontal(0, winW);
+        rootView.add(pauseLabel);
+
+        UIButton resumeButton = new UIButton(
+                "RESUME",
+                winW / 2.0 - 100,
+                winH / 2.0,
+                200,
+                48,
+                () -> transitionTo(Phase.PLAYING)
+        );
+        rootView.add(resumeButton);
+
+        UIButton menuButton = new UIButton(
+                "EXIT TO MENU",
+                winW / 2.0 - 100,
+                winH / 2.0 + 80,
+                200,
+                48,
+                () -> window.requestClose()
+        );
+        rootView.add(menuButton);
     }
 
     private void buildGameOverUI() {
@@ -207,9 +206,19 @@ public class SnakeGameState {
                 winH / 2.0 + 48,
                 200,
                 48,
-                () -> transitionTo(Phase.MENU)
+                () -> transitionTo(Phase.PLAYING)
         );
         rootView.add(restartButton);
+        
+        UIButton exitButton = new UIButton(
+                "EXIT TO MENU",
+                winW / 2.0 - 100,
+                winH / 2.0 + 110,
+                200,
+                48,
+                () -> window.requestClose()
+        );
+        rootView.add(exitButton);
     }
 
     private void drawGridBackground() {

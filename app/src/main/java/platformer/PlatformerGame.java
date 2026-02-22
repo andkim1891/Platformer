@@ -15,7 +15,7 @@ public class PlatformerGame {
         new PlatformerGame().run();
     }
 
-    private void run() {
+    public void run() {
         try {
             init();
             loop();
