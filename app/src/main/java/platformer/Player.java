@@ -127,6 +127,7 @@ public class Player {
             dashEffectAlpha = dashCooldownTime;
             showDashEffect = true;
             invisibileFramCurrentTime = invisibileFramDurration;
+            AudioManager.getInstance().playSFX("sfx09_electric_spark.wav");
         } else if (!PlatformerModel.freezeTime) {
             showDashCooldownMessage = true;
         }
@@ -138,7 +139,7 @@ public class Player {
             stabCurrentDuration = stabDurationCap;
             isStabbing = true;
             AudioManager.getInstance().playSFX("sfx10_wood_hit.wav");
-        }else if (!PlatformerModel.freezeTime) {
+        } else if (!PlatformerModel.freezeTime) {
             showStabCooldownMessage = true;
         }
     }
@@ -147,6 +148,7 @@ public class Player {
             startPrayTimer = true;
             shouldntMove = true;
             renderPray = true;
+            AudioManager.getInstance().playSFX("sfx05_power_up.wav");
         }
     }
     public void prayRelease(){
@@ -178,6 +180,7 @@ public class Player {
                 startJumpChargeCounter = true;
                 onGround = false;
                 currentGameTimeForJump = (int) PlatformerModel.gameTime;
+                AudioManager.getInstance().playSFX("sfx11_mouse_click.wav");
             }
         }
     }
@@ -193,6 +196,7 @@ public class Player {
                 jumpOvalX = x + 10;
                 jumpOvalY = y - 5;
                 jumpOvalAlpha = 0.5f;
+                AudioManager.getInstance().playSFX("sfx12_mouse_click.wav");
             }
             numberOfJump++;
         }
@@ -210,6 +214,7 @@ public class Player {
         windBurst = true;
         WindBurstSlow = true;
         currentGameTimeForWindBurst = (int) PlatformerModel.gameTime;
+        AudioManager.getInstance().playSFX("sfx06_tv_noise.wav");
     }
 
 
