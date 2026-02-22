@@ -76,6 +76,19 @@ public class KeyboardControlManager {
 
 
 
+    public void resetKeys() {
+        keys = new ArrayList<>(Arrays.asList('W', 'A', 'D', 'S', 'Q', 'E'));
+        keyMap = new HashMap<>();
+        keyMap.put("UP", getKeyCode(keys.get(0)));
+        keyMap.put("LEFT", getKeyCode(keys.get(1)));
+        keyMap.put("RIGHT", getKeyCode(keys.get(2)));
+        keyMap.put("DOWN", getKeyCode(keys.get(3)));
+        keyMap.put("CHARATER SKILL", getKeyCode(keys.get(4)));
+        keyMap.put("CHANGE CHARATER SKILL", getKeyCode(keys.get(5)));
+        keyMap.put("SUBMIT", GLFW.GLFW_KEY_ENTER);
+        didRandomize = false;
+    }
+
     public Map<String, Integer> getKeyMap() {
         return keyMap;
     }

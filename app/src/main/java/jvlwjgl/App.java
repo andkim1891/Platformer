@@ -3,10 +3,8 @@
  */
 package jvlwjgl;
 
-// import core.Game;
-// import core.HigherOrLower;
-
 import platformer.PlatformerGame;
+import snake.SnakeGame;
 
 public class App {
     public String getGreeting() {
@@ -14,29 +12,24 @@ public class App {
     }
 
     public static void main(String[] args) {
-        // System.out.println(new App().getGreeting());
+        // Main Application Loop
+        while (true) {
+            // Show Main Menu and wait for selection
+            MainMenu menu = new MainMenu();
+            MainMenu.Selection selection = menu.run();
 
-
-
-        // ClickButtonApp.main(args);
-//        snake.SnakeGame.main(args);
-        PlatformerGame.main(args);
-
-        
-        // Test.main(args);
-
-
-
-
-
-
-
-        // HigherOrLower.main(args);
-
-
-        // ui.GameApp.main(args);
-
-        
-        // ux.GameApp.main(args);
+            // Handle Selection
+            if (selection == MainMenu.Selection.EXIT) {
+                break;
+            } else if (selection == MainMenu.Selection.PLATFORMER) {
+                // Run Platformer (blocks until returned)
+                new PlatformerGame().run();
+            } else if (selection == MainMenu.Selection.SNAKE) {
+                // Run Snake (blocks until returned)
+                new SnakeGame().run();
+            }
+            
+            // Loop continues, reopening menu unless EXIT
+        }
     }
 }

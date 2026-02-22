@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class UIRectangle extends UIComponent {
 
     private float[] color;
+    private float alpha = 1.0f;
 
     // ---------- ORIGINAL SIZE ----------
     private double originalW;
@@ -18,6 +19,14 @@ public class UIRectangle extends UIComponent {
     public void setShrinking(boolean shrinking) {
         this.isShrinking = shrinking;
         if (shrinking) shrinkScale = 1.0;
+    }
+    
+    public void setColor(float r, float g, float b) {
+        this.color = new float[]{r, g, b};
+    }
+
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
     }
 
 
@@ -89,7 +98,14 @@ public class UIRectangle extends UIComponent {
         double finalH = drawH;
 
         float brightness = calculateCoreBrightness();
-        glColor3f(color[0] * brightness, color[1] * brightness, color[2] * brightness);
+        
+        boolean needBlend = alpha < 1.0f;
+        if (needBlend) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        
+        glColor4f(color[0] * brightness, color[1] * brightness, color[2] * brightness, alpha);
 
 
         renderRect(
@@ -98,5 +114,9 @@ public class UIRectangle extends UIComponent {
                 finalW,
                 finalH
         );
+        
+        if (needBlend) {
+            glDisable(GL_BLEND);
+        }
     }
 }

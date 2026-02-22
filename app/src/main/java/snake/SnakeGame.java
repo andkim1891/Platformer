@@ -18,7 +18,7 @@ public class SnakeGame {
         new SnakeGame().run();
     }
 
-    private void run() {
+    public void run() {
         try {
             init();
             loop();

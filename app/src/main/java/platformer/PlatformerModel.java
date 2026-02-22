@@ -74,7 +74,7 @@ public class PlatformerModel {
         }
     }
 
-    public static final Difficulty difficulty = Difficulty.IMPOSSIBLE;
+    public static Difficulty difficulty = Difficulty.NORMAL;
     private int totalMobsA = 0;
     private int pastScore = 0;
     private double mobsThatIsLeftover = 0;
@@ -163,7 +163,19 @@ public class PlatformerModel {
         showMessage("Press Enter For Shop");
     }
 
-    private void initialize() {
+    public void initialize() {
+        gameTime = 0;
+        secondGameTime = 0;
+        freezeTime = false;
+        dashLevel = 1.0f;
+        dashLevelWasBrought = false;
+        score = 0;
+        pastScore = 0;
+        totalMobsA = 0;
+        mobsThatIsLeftover = 0;
+        addMobsA = false;
+        currentLives = 5;
+
         camera = new GameCamera(screenWidth, screenHeight, WORLD_WIDTH);
         player = new Player(100, 50);
         generatePlatforms();
@@ -171,6 +183,7 @@ public class PlatformerModel {
         mobs = new ArrayList<>();
 
         KeyboardControlManager keyManager = KeyboardControlManager.getInstance();
+        keyManager.resetKeys();
         if (difficulty == Difficulty.NIGHTMARE) keyManager.randomizeKeys();
         showKeys(true);
         initLivesUI();
